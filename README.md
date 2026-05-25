@@ -49,8 +49,11 @@ Used by:
 Long-running tasks return a `task_id`. The frontend polls:
 - `GET /api/tasks/{task_id}/progress`
 
-and renders a compact bottom panel via:
-- `components/workflow/WorkflowProgressPanel.tsx`
+Workflow progress state is global (app-sticky) via:
+- `components/workflow/workflow-progress-context.tsx`
+
+The panel is rendered once at the app root via:
+- `components/workflow/WorkflowProgressPanelHost.tsx`
 
 ## Docker
 Build/run the frontend container:

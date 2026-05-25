@@ -3,13 +3,15 @@
 import * as React from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
-import { listBankItems, readBankFile } from "@/lib/api";
+import { deleteBank, listBankItems, readBankFile } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { DeleteBankDialog } from "@/components/common/DeleteBankDialog";
 
 type BankItem = {
   id: string;
@@ -36,6 +38,7 @@ function chips(items: string[]) {
 }
 
 export default function BankPreviewPage() {
+  const router = useRouter();
   const params = useParams<{ bankName: string }>();
   const bankName = decodeURIComponent(params.bankName);
   const [selectedKey, setSelectedKey] = React.useState<string | null>(null);
@@ -70,6 +73,15 @@ export default function BankPreviewPage() {
     queryFn: () => readBankFile(bankName, selectedItem!.raw_path)
   });
 
+  const [deleteOpen, setDeleteOpen] = React.useState(false);
+  const deleteMutation = useMutation({
+    mutationFn: () => deleteBank(bankName),
+    onSuccess: () => {
+      setDeleteOpen(false);
+      router.push("/banks");
+    }
+  });
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
@@ -79,16 +91,28 @@ export default function BankPreviewPage() {
         </div>
         <div className="flex gap-2">
           <Link href={`/banks/${encodeURIComponent(bankName)}/edit`}>
-            <Button variant="secondary">Edit</Button>
+            <Button variant="secondary">AI Bank Editor</Button>
           </Link>
           <Link href={`/tailor?bank=${encodeURIComponent(bankName)}`}>
             <Button>Tailor Resume</Button>
           </Link>
+          <Button variant="destructive" onClick={() => setDeleteOpen(true)}>
+            Delete
+          </Button>
           <Link href="/banks">
             <Button variant="outline">Back to banks</Button>
           </Link>
         </div>
       </div>
+
+      <DeleteBankDialog
+        open={deleteOpen}
+        bankName={bankName}
+        onCancel={() => setDeleteOpen(false)}
+        onConfirm={() => deleteMutation.mutate()}
+        isDeleting={deleteMutation.isPending}
+        error={deleteMutation.error ? String(deleteMutation.error) : null}
+      />
 
       <Card>
         <CardHeader>

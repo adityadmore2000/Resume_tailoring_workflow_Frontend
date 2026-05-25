@@ -11,8 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { LoadingAnimation } from "@/components/common/LoadingAnimation";
-import { WorkflowProgressPanel } from "@/components/workflow/WorkflowProgressPanel";
-import { useWorkflowProgress } from "@/hooks/useWorkflowProgress";
+import { useWorkflowProgressController } from "@/components/workflow/workflow-progress-context";
 
 export default function CreateBankPage() {
   const router = useRouter();
@@ -20,9 +19,7 @@ export default function CreateBankPage() {
   const [overwrite, setOverwrite] = React.useState(false);
   const [resumeText, setResumeText] = React.useState("");
   const [file, setFile] = React.useState<File | null>(null);
-  const [taskId, setTaskId] = React.useState<string | null>(null);
-
-  const progressQuery = useWorkflowProgress(taskId);
+  const { state, progress, actions } = useWorkflowProgressController();
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -34,17 +31,17 @@ export default function CreateBankPage() {
       return createBank(form);
     },
     onSuccess: (data) => {
-      setTaskId(data.task_id);
+      actions.startWorkflowTask({ taskId: data.task_id, taskType: "experience_bank_generation" });
     }
   });
 
   React.useEffect(() => {
-    const p = progressQuery.data;
+    const p = progress;
     if (!p) return;
-    if (p.status === "completed" && p.result?.bank_folder_name) {
+    if (state.taskType === "experience_bank_generation" && p.status === "completed" && p.result?.bank_folder_name) {
       router.push(`/banks/${encodeURIComponent(p.result.bank_folder_name)}/preview`);
     }
-  }, [progressQuery.data, router]);
+  }, [progress, router, state.taskType]);
 
   return (
     <div className="space-y-6">
@@ -104,9 +101,9 @@ export default function CreateBankPage() {
       <div className="flex items-center gap-3">
         <Button
           onClick={() => mutation.mutate()}
-          disabled={mutation.isPending || Boolean(taskId) || !bankName.trim() || (!file && !resumeText.trim())}
+          disabled={mutation.isPending || !bankName.trim() || (!file && !resumeText.trim())}
         >
-          {mutation.isPending || taskId ? "Generating…" : "Generate Experience Bank"}
+          {mutation.isPending ? "Generating…" : "Generate Experience Bank"}
         </Button>
         <Link href="/banks">
           <Button variant="outline">Back to banks</Button>
@@ -115,10 +112,8 @@ export default function CreateBankPage() {
 
       {mutation.error ? <div className="text-sm text-red-600">{String(mutation.error)}</div> : null}
 
-      {taskId ? <LoadingAnimation label="Generating your Experience Bank…" /> : null}
-
-      {progressQuery.data ? (
-        <WorkflowProgressPanel progress={progressQuery.data} onClose={() => setTaskId(null)} />
+      {state.isVisible && state.taskType === "experience_bank_generation" && state.status === "running" ? (
+        <LoadingAnimation label="Generating your Experience Bank…" />
       ) : null}
 
       <div className="rounded-lg border border-border bg-card p-4 text-sm text-mutedForeground">

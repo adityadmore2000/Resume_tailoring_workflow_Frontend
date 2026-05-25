@@ -11,8 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { LoadingAnimation } from "@/components/common/LoadingAnimation";
-import { WorkflowProgressPanel } from "@/components/workflow/WorkflowProgressPanel";
-import { useWorkflowProgress } from "@/hooks/useWorkflowProgress";
+import { useWorkflowProgressController } from "@/components/workflow/workflow-progress-context";
 import { EmptyStateAnimation } from "@/components/common/EmptyStateAnimation";
 
 export default function TailorClientPage() {
@@ -26,25 +25,23 @@ export default function TailorClientPage() {
   const [bank, setBank] = React.useState<string | null>(preselected);
   const [jdText, setJdText] = React.useState("");
   const [lastLog, setLastLog] = React.useState<string | null>(null);
-  const [taskId, setTaskId] = React.useState<string | null>(null);
-
-  const progressQuery = useWorkflowProgress(taskId);
+  const { state, progress, actions } = useWorkflowProgressController();
 
   const mutation = useMutation({
     mutationFn: () => tailorResume({ bank_name: bank ?? "", jd_text: jdText }),
     onSuccess: (data) => {
-      setTaskId(data.task_id);
+      actions.startWorkflowTask({ taskId: data.task_id, taskType: "resume_tailoring" });
       setLastLog("Tailoring started…");
     }
   });
 
   React.useEffect(() => {
-    const p = progressQuery.data;
+    const p = progress;
     if (!p) return;
-    if (p.status === "completed" && p.result?.resume_id) {
+    if (state.taskType === "resume_tailoring" && p.status === "completed" && p.result?.resume_id) {
       router.push(`/resumes/${encodeURIComponent(p.result.resume_id)}/preview`);
     }
-  }, [progressQuery.data, router]);
+  }, [progress, router, state.taskType]);
 
   function clearForm() {
     setBank(preselected ?? null);
@@ -110,8 +107,8 @@ export default function TailorClientPage() {
       </div>
 
       <div className="flex items-center gap-3">
-        <Button onClick={() => mutation.mutate()} disabled={mutation.isPending || Boolean(taskId) || !bank || !jdText.trim()}>
-          {mutation.isPending || taskId ? "Tailoring…" : "Tailor Resume"}
+        <Button onClick={() => mutation.mutate()} disabled={mutation.isPending || !bank || !jdText.trim()}>
+          {mutation.isPending ? "Tailoring…" : "Tailor Resume"}
         </Button>
         <div className="text-xs text-mutedForeground">
           Why was a skill excluded? It wasn’t supported by verified evidence in your bank.
@@ -120,9 +117,9 @@ export default function TailorClientPage() {
 
       {mutation.error ? <div className="text-sm text-red-600">{String(mutation.error)}</div> : null}
       {lastLog ? <div className="text-sm text-mutedForeground">{lastLog}</div> : null}
-      {taskId ? <LoadingAnimation label="Tailoring your resume…" /> : null}
-      {progressQuery.data ? <WorkflowProgressPanel progress={progressQuery.data} onClose={() => setTaskId(null)} /> : null}
+      {state.isVisible && state.taskType === "resume_tailoring" && state.status === "running" ? (
+        <LoadingAnimation label="Tailoring your resume…" />
+      ) : null}
     </div>
   );
 }
-

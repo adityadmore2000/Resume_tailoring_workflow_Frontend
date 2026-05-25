@@ -34,19 +34,16 @@ const iconByStepId: Record<string, React.ComponentType<{ className?: string }>> 
 
 export function WorkflowProgressPanel({
   progress,
-  onClose
+  onClose,
+  isCollapsed,
+  onToggleCollapsed
 }: {
   progress: WorkflowProgress;
   onClose?: () => void;
+  isCollapsed?: boolean;
+  onToggleCollapsed?: (collapsed: boolean) => void;
 }) {
-  const [collapsed, setCollapsed] = React.useState(false);
-
-  React.useEffect(() => {
-    if (progress.status === "completed") {
-      const t = window.setTimeout(() => onClose?.(), 1800);
-      return () => window.clearTimeout(t);
-    }
-  }, [progress.status, onClose]);
+  const collapsed = Boolean(isCollapsed);
 
   const steps = progress.steps ?? [];
   const activeIdx = steps.findIndex((s) => s.status === "active");
@@ -54,13 +51,13 @@ export function WorkflowProgressPanel({
   return (
     <div className="fixed bottom-4 left-0 right-0 z-50">
       <div className="mx-auto max-w-6xl px-6">
-        <div className="rounded-lg border border-border bg-card text-cardForeground shadow-lg">
+        <div className="rounded-lg border border-border bg-card text-card-foreground shadow-lg">
           <div className="flex items-center justify-between gap-3 px-4 py-3">
             <div className="min-w-0">
               <div className="truncate text-sm font-semibold">
                 {progress.task_type === "experience_bank_generation" ? "Generating Experience Bank" : "Tailoring Resume"}
               </div>
-              <div className="truncate text-xs text-mutedForeground">
+              <div className="truncate text-xs text-muted-foreground">
                 {progress.status === "failed"
                   ? progress.error ?? "Failed"
                   : progress.status === "completed"
@@ -71,7 +68,12 @@ export function WorkflowProgressPanel({
               </div>
             </div>
             <div className="flex items-center gap-1">
-              <Button variant="ghost" size="sm" onClick={() => setCollapsed((v) => !v)}>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onToggleCollapsed?.(!collapsed)}
+                disabled={!onToggleCollapsed}
+              >
                 {collapsed ? "Expand" : "Collapse"}
               </Button>
               <Button variant="ghost" size="sm" onClick={onClose} aria-label="Close panel">
@@ -92,4 +94,3 @@ export function WorkflowProgressPanel({
     </div>
   );
 }
-

@@ -27,7 +27,7 @@ function chips(items: string[]) {
   return (
     <div className="flex flex-wrap gap-2">
       {xs.map((x) => (
-        <span key={x} className="rounded-md bg-slate-100 px-2 py-0.5 text-xs text-slate-700">
+        <span key={x} className="rounded-md bg-muted px-2 py-0.5 text-xs text-mutedForeground">
           {x}
         </span>
       ))}
@@ -75,9 +75,12 @@ export default function BankPreviewPage() {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold">Preview Experience Bank</h1>
-          <p className="mt-1 text-sm text-slate-700">Step 2 of 4 — Review extracted content before tailoring.</p>
+          <p className="mt-1 text-sm text-mutedForeground">Step 2 of 4 — Review extracted content before tailoring.</p>
         </div>
         <div className="flex gap-2">
+          <Link href={`/banks/${encodeURIComponent(bankName)}/edit`}>
+            <Button variant="secondary">Edit</Button>
+          </Link>
           <Link href={`/tailor?bank=${encodeURIComponent(bankName)}`}>
             <Button>Tailor Resume</Button>
           </Link>
@@ -92,19 +95,19 @@ export default function BankPreviewPage() {
           <CardTitle>Why this page exists</CardTitle>
           <CardDescription>Human-readable review first. Technical metadata stays optional.</CardDescription>
         </CardHeader>
-        <CardContent className="text-sm text-slate-700">
+        <CardContent className="text-sm text-mutedForeground">
           Recommended next step: confirm the extracted experience looks accurate, then tailor a resume using this bank.
         </CardContent>
       </Card>
 
       <div className="grid gap-4 md:grid-cols-[280px_1fr]">
         <div className="space-y-3">
-          <div className="rounded-lg border border-slate-200 bg-white p-3 text-sm font-medium">{bankName}</div>
-          {itemsQuery.isLoading ? <div className="text-sm text-slate-600">Loading…</div> : null}
+          <div className="rounded-lg border border-border bg-card p-3 text-sm font-medium">{bankName}</div>
+          {itemsQuery.isLoading ? <div className="text-sm text-mutedForeground">Loading…</div> : null}
           {itemsQuery.error ? <div className="text-sm text-red-600">{String(itemsQuery.error)}</div> : null}
 
-          <div className="rounded-lg border border-slate-200 bg-white p-3">
-            <div className="text-xs font-semibold text-slate-600">Experience</div>
+          <div className="rounded-lg border border-border bg-card p-3">
+            <div className="text-xs font-semibold text-mutedForeground">Experience</div>
             <div className="mt-2 space-y-1">
               {grouped.exp.map((it) => {
                 const key = `${it.type}:${it.id}`;
@@ -112,7 +115,7 @@ export default function BankPreviewPage() {
                 return (
                   <button
                     key={key}
-                    className={`w-full rounded-md px-2 py-1 text-left text-sm hover:bg-slate-50 ${active ? "bg-slate-100 font-medium" : ""}`}
+                    className={`w-full rounded-md px-2 py-1 text-left text-sm hover:bg-accent hover:text-accentForeground ${active ? "bg-accent font-medium text-accentForeground" : ""}`}
                     onClick={() => setSelectedKey(key)}
                   >
                     {it.title}
@@ -120,7 +123,7 @@ export default function BankPreviewPage() {
                 );
               })}
             </div>
-            <div className="mt-4 text-xs font-semibold text-slate-600">Projects</div>
+            <div className="mt-4 text-xs font-semibold text-mutedForeground">Projects</div>
             <div className="mt-2 space-y-1">
               {grouped.proj.map((it) => {
                 const key = `${it.type}:${it.id}`;
@@ -128,7 +131,7 @@ export default function BankPreviewPage() {
                 return (
                   <button
                     key={key}
-                    className={`w-full rounded-md px-2 py-1 text-left text-sm hover:bg-slate-50 ${active ? "bg-slate-100 font-medium" : ""}`}
+                    className={`w-full rounded-md px-2 py-1 text-left text-sm hover:bg-accent hover:text-accentForeground ${active ? "bg-accent font-medium text-accentForeground" : ""}`}
                     onClick={() => setSelectedKey(key)}
                   >
                     {it.title}
@@ -136,7 +139,7 @@ export default function BankPreviewPage() {
                 );
               })}
             </div>
-            <div className="mt-4 text-xs font-semibold text-slate-600">Capabilities</div>
+            <div className="mt-4 text-xs font-semibold text-mutedForeground">Capabilities</div>
             <div className="mt-2 space-y-1">
               {grouped.cap.map((it) => {
                 const key = `${it.type}:${it.id}`;
@@ -144,7 +147,7 @@ export default function BankPreviewPage() {
                 return (
                   <button
                     key={key}
-                    className={`w-full rounded-md px-2 py-1 text-left text-sm hover:bg-slate-50 ${active ? "bg-slate-100 font-medium" : ""}`}
+                    className={`w-full rounded-md px-2 py-1 text-left text-sm hover:bg-accent hover:text-accentForeground ${active ? "bg-accent font-medium text-accentForeground" : ""}`}
                     onClick={() => setSelectedKey(key)}
                   >
                     {it.title}
@@ -249,4 +252,3 @@ export default function BankPreviewPage() {
     </div>
   );
 }
-

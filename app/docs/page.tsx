@@ -14,7 +14,9 @@ export default function DocsLandingPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold">Docs</h1>
-        <p className="mt-1 text-sm text-slate-700">Workflow-oriented documentation designed to be read inside the product.</p>
+        <p className="mt-1 text-sm text-mutedForeground">
+          Workflow-oriented documentation designed to be read inside the product.
+        </p>
       </div>
 
       <Card>
@@ -35,7 +37,7 @@ export default function DocsLandingPage() {
         </CardContent>
       </Card>
 
-      {q.isLoading ? <div className="text-sm text-slate-600">Loading docs…</div> : null}
+      {q.isLoading ? <div className="text-sm text-mutedForeground">Loading docs…</div> : null}
       {q.error ? <div className="text-sm text-red-600">{String(q.error)}</div> : null}
 
       <div className="grid gap-4 md:grid-cols-2">
@@ -56,4 +58,3 @@ export default function DocsLandingPage() {
     </div>
   );
 }
-

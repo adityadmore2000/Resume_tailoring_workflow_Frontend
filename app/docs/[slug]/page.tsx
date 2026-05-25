@@ -20,7 +20,7 @@ export default function DocDetailPage() {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold">{q.data?.title ?? "Doc"}</h1>
-          <p className="mt-1 text-sm text-slate-700">Workflow-first guidance.</p>
+          <p className="mt-1 text-sm text-mutedForeground">Workflow-first guidance.</p>
         </div>
         <Link href="/docs">
           <Button variant="outline">Back to docs</Button>
@@ -43,7 +43,7 @@ export default function DocDetailPage() {
       </Card>
 
       <Card>
-        <CardContent className="prose prose-slate max-w-none p-6">
+        <CardContent className="prose max-w-none p-6 dark:prose-invert">
           {q.isLoading ? <div>Loading…</div> : null}
           {q.error ? <div className="text-red-600">{String(q.error)}</div> : null}
           {q.data?.content ? <ReactMarkdown remarkPlugins={[remarkGfm]}>{q.data.content}</ReactMarkdown> : null}
@@ -52,4 +52,3 @@ export default function DocDetailPage() {
     </div>
   );
 }
-

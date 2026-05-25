@@ -24,7 +24,9 @@ NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
 - `/` Landing
 - `/banks` Experience Banks index
 - `/banks/create` Create Experience Bank (upload/paste resume)
+- `/banks/[bankName]/edit` Edit bank files + re-ingest
 - `/tailor` Tailor Resume (select bank + paste JD)
+- `/settings` Theme + LLM provider settings (dev/local only for now)
 - `/docs` Docs index
 - `/docs/[slug]` Docs page (rendered from backend)
 
@@ -34,8 +36,26 @@ Start the backend (`resume-tailor-backend`) on `http://localhost:8000`, then ens
 
 The frontend uses `fetch()` to call backend endpoints under `/api/...` (see `lib/api.ts`).
 
+## Lottie assets
+Place dotlottie files under:
+- `public/assets/loading.dotlottie`
+- `public/assets/no-data.dotlottie`
+
+Used by:
+- `components/common/LoadingAnimation.tsx`
+- `components/common/EmptyStateAnimation.tsx`
+
+## Workflow progress panel
+Long-running tasks return a `task_id`. The frontend polls:
+- `GET /api/tasks/{task_id}/progress`
+
+Workflow progress state is global (app-sticky) via:
+- `components/workflow/workflow-progress-context.tsx`
+
+The panel is rendered once at the app root via:
+- `components/workflow/WorkflowProgressPanelHost.tsx`
+
 ## Docker
 Build/run the frontend container:
 - `docker build -t resume-tailor-frontend .`
 - `docker run -p 3000:3000 -e NEXT_PUBLIC_API_BASE_URL=http://localhost:8000 resume-tailor-frontend`
-

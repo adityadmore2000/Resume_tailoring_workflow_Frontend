@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { LoadingAnimation } from "@/components/common/LoadingAnimation";
+import { useWorkflowProgressController } from "@/components/workflow/workflow-progress-context";
 
 export default function CreateBankPage() {
   const router = useRouter();
@@ -17,6 +19,7 @@ export default function CreateBankPage() {
   const [overwrite, setOverwrite] = React.useState(false);
   const [resumeText, setResumeText] = React.useState("");
   const [file, setFile] = React.useState<File | null>(null);
+  const { state, progress, actions } = useWorkflowProgressController();
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -28,15 +31,23 @@ export default function CreateBankPage() {
       return createBank(form);
     },
     onSuccess: (data) => {
-      router.push(`/banks/${encodeURIComponent(data.bank_folder_name)}/preview`);
+      actions.startWorkflowTask({ taskId: data.task_id, taskType: "experience_bank_generation" });
     }
   });
+
+  React.useEffect(() => {
+    const p = progress;
+    if (!p) return;
+    if (state.taskType === "experience_bank_generation" && p.status === "completed" && p.result?.bank_folder_name) {
+      router.push(`/banks/${encodeURIComponent(p.result.bank_folder_name)}/preview`);
+    }
+  }, [progress, router, state.taskType]);
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold">Create Experience Bank</h1>
-        <p className="mt-1 text-sm text-slate-700">Step 1 of 4 — Convert your master resume into a reusable Experience Bank.</p>
+        <p className="mt-1 text-sm text-mutedForeground">Step 1 of 4 — Convert your master resume into a reusable Experience Bank.</p>
       </div>
 
       <Card>
@@ -44,11 +55,11 @@ export default function CreateBankPage() {
           <CardTitle>Why this page exists</CardTitle>
           <CardDescription>Tailoring does not re-read resumes. Experience Banks become the source-of-truth.</CardDescription>
         </CardHeader>
-        <CardContent className="text-sm text-slate-700 space-y-2">
+        <CardContent className="space-y-2 text-sm text-mutedForeground">
           <div>
             Input guidance: upload a master resume (MVP: <code>.tex</code> or <code>.txt</code>) and use a stable bank name.
           </div>
-          <div className="text-slate-600">Hint: You’ll reuse this bank name for every job instead of uploading resumes repeatedly.</div>
+          <div>Hint: You’ll reuse this bank name for every job instead of uploading resumes repeatedly.</div>
         </CardContent>
       </Card>
 
@@ -59,7 +70,7 @@ export default function CreateBankPage() {
         </div>
         <div className="space-y-2">
           <div className="text-sm font-medium">Overwrite existing bank</div>
-          <label className="flex items-center gap-2 text-sm text-slate-700">
+          <label className="flex items-center gap-2 text-sm text-foreground">
             <input type="checkbox" checked={overwrite} onChange={(e) => setOverwrite(e.target.checked)} />
             I understand overwrite may replace an existing bank
           </label>
@@ -78,7 +89,7 @@ export default function CreateBankPage() {
             onChange={(e) => setFile(e.target.files?.[0] ?? null)}
             className="text-sm"
           />
-          <div className="text-xs text-slate-600">PDF support is planned; MVP expects .tex or .txt.</div>
+          <div className="text-xs text-mutedForeground">PDF support is planned; MVP expects .tex or .txt.</div>
           <Textarea
             value={resumeText}
             onChange={(e) => setResumeText(e.target.value)}
@@ -101,10 +112,13 @@ export default function CreateBankPage() {
 
       {mutation.error ? <div className="text-sm text-red-600">{String(mutation.error)}</div> : null}
 
-      <div className="rounded-lg border border-slate-200 bg-white p-4 text-sm text-slate-700">
+      {state.isVisible && state.taskType === "experience_bank_generation" && state.status === "running" ? (
+        <LoadingAnimation label="Generating your Experience Bank…" />
+      ) : null}
+
+      <div className="rounded-lg border border-border bg-card p-4 text-sm text-mutedForeground">
         Recommended next step after creation: <Link className="underline" href="/banks">Preview the bank</Link>, then tailor a JD.
       </div>
     </div>
   );
 }
-

@@ -1,20 +1,37 @@
 "use client";
 
 import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
+import * as React from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
 
-import { listBanks } from "@/lib/api";
+import { deleteBank, listBanks } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { EmptyStateAnimation } from "@/components/common/EmptyStateAnimation";
+import { LoadingAnimation } from "@/components/common/LoadingAnimation";
+import { DeleteBankDialog } from "@/components/common/DeleteBankDialog";
 
 export default function BanksPage() {
-  const { data, isLoading, error } = useQuery({ queryKey: ["banks"], queryFn: listBanks });
+  const banksQuery = useQuery({ queryKey: ["banks"], queryFn: listBanks });
+  const { data, isLoading, error } = banksQuery;
+
+  const [deleteOpen, setDeleteOpen] = React.useState(false);
+  const [bankToDelete, setBankToDelete] = React.useState<string | null>(null);
+
+  const deleteMutation = useMutation({
+    mutationFn: (bankName: string) => deleteBank(bankName),
+    onSuccess: () => {
+      setDeleteOpen(false);
+      setBankToDelete(null);
+      banksQuery.refetch();
+    }
+  });
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold">Experience Banks</h1>
-        <p className="mt-1 text-sm text-slate-700">Step 1–2 of 4: create and review your reusable knowledge base.</p>
+        <p className="mt-1 text-sm text-mutedForeground">Step 1–2 of 4: create and review your reusable knowledge base.</p>
       </div>
 
       <Card>
@@ -22,7 +39,7 @@ export default function BanksPage() {
           <CardTitle>What this page does</CardTitle>
           <CardDescription>Lists the Experience Banks available for tailoring.</CardDescription>
         </CardHeader>
-        <CardContent className="text-sm text-slate-700">
+        <CardContent className="text-sm text-mutedForeground">
           Recommended next step: create a bank from your master resume, then preview it before tailoring.
         </CardContent>
       </Card>
@@ -36,21 +53,16 @@ export default function BanksPage() {
         </Link>
       </div>
 
-      {isLoading ? <div className="text-sm text-slate-600">Loading banks…</div> : null}
+      {isLoading ? <LoadingAnimation label="Loading banks…" size={140} /> : null}
       {error ? <div className="text-sm text-red-600">{String(error)}</div> : null}
 
       {!isLoading && data?.banks?.length === 0 ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>No Experience Banks found</CardTitle>
-            <CardDescription>Create your first bank to start tailoring.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Link href="/banks/create">
-              <Button>Create Experience Bank</Button>
-            </Link>
-          </CardContent>
-        </Card>
+        <EmptyStateAnimation
+          title="No Experience Banks found"
+          description="Create your first Experience Bank to start tailoring resumes."
+          ctaLabel="Create Experience Bank"
+          ctaHref="/banks/create"
+        />
       ) : null}
 
       <div className="grid gap-4 md:grid-cols-2">
@@ -64,14 +76,40 @@ export default function BanksPage() {
               <Link href={`/banks/${encodeURIComponent(b.bank_folder_name)}/preview`}>
                 <Button variant="secondary">Preview</Button>
               </Link>
+              <Link href={`/banks/${encodeURIComponent(b.bank_folder_name)}/edit`}>
+                <Button variant="outline">AI Bank Editor</Button>
+              </Link>
               <Link href={`/tailor?bank=${encodeURIComponent(b.bank_folder_name)}`}>
                 <Button variant="outline">Tailor</Button>
               </Link>
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  setBankToDelete(b.bank_folder_name);
+                  setDeleteOpen(true);
+                }}
+              >
+                Delete
+              </Button>
             </CardContent>
           </Card>
         ))}
       </div>
+
+      <DeleteBankDialog
+        open={deleteOpen}
+        bankName={bankToDelete ?? ""}
+        onCancel={() => {
+          setDeleteOpen(false);
+          setBankToDelete(null);
+        }}
+        onConfirm={() => {
+          if (!bankToDelete) return;
+          deleteMutation.mutate(bankToDelete);
+        }}
+        isDeleting={deleteMutation.isPending}
+        error={deleteMutation.error ? String(deleteMutation.error) : null}
+      />
     </div>
   );
 }
-

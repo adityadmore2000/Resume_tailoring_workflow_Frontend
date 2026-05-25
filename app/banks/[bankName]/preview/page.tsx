@@ -3,13 +3,15 @@
 import * as React from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
-import { listBankItems, readBankFile } from "@/lib/api";
+import { deleteBank, listBankItems, readBankFile } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { DeleteBankDialog } from "@/components/common/DeleteBankDialog";
 
 type BankItem = {
   id: string;
@@ -27,7 +29,7 @@ function chips(items: string[]) {
   return (
     <div className="flex flex-wrap gap-2">
       {xs.map((x) => (
-        <span key={x} className="rounded-md bg-slate-100 px-2 py-0.5 text-xs text-slate-700">
+        <span key={x} className="rounded-md bg-muted px-2 py-0.5 text-xs text-mutedForeground">
           {x}
         </span>
       ))}
@@ -36,6 +38,7 @@ function chips(items: string[]) {
 }
 
 export default function BankPreviewPage() {
+  const router = useRouter();
   const params = useParams<{ bankName: string }>();
   const bankName = decodeURIComponent(params.bankName);
   const [selectedKey, setSelectedKey] = React.useState<string | null>(null);
@@ -70,41 +73,65 @@ export default function BankPreviewPage() {
     queryFn: () => readBankFile(bankName, selectedItem!.raw_path)
   });
 
+  const [deleteOpen, setDeleteOpen] = React.useState(false);
+  const deleteMutation = useMutation({
+    mutationFn: () => deleteBank(bankName),
+    onSuccess: () => {
+      setDeleteOpen(false);
+      router.push("/banks");
+    }
+  });
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold">Preview Experience Bank</h1>
-          <p className="mt-1 text-sm text-slate-700">Step 2 of 4 — Review extracted content before tailoring.</p>
+          <p className="mt-1 text-sm text-mutedForeground">Step 2 of 4 — Review extracted content before tailoring.</p>
         </div>
         <div className="flex gap-2">
+          <Link href={`/banks/${encodeURIComponent(bankName)}/edit`}>
+            <Button variant="secondary">AI Bank Editor</Button>
+          </Link>
           <Link href={`/tailor?bank=${encodeURIComponent(bankName)}`}>
             <Button>Tailor Resume</Button>
           </Link>
+          <Button variant="destructive" onClick={() => setDeleteOpen(true)}>
+            Delete
+          </Button>
           <Link href="/banks">
             <Button variant="outline">Back to banks</Button>
           </Link>
         </div>
       </div>
 
+      <DeleteBankDialog
+        open={deleteOpen}
+        bankName={bankName}
+        onCancel={() => setDeleteOpen(false)}
+        onConfirm={() => deleteMutation.mutate()}
+        isDeleting={deleteMutation.isPending}
+        error={deleteMutation.error ? String(deleteMutation.error) : null}
+      />
+
       <Card>
         <CardHeader>
           <CardTitle>Why this page exists</CardTitle>
           <CardDescription>Human-readable review first. Technical metadata stays optional.</CardDescription>
         </CardHeader>
-        <CardContent className="text-sm text-slate-700">
+        <CardContent className="text-sm text-mutedForeground">
           Recommended next step: confirm the extracted experience looks accurate, then tailor a resume using this bank.
         </CardContent>
       </Card>
 
       <div className="grid gap-4 md:grid-cols-[280px_1fr]">
         <div className="space-y-3">
-          <div className="rounded-lg border border-slate-200 bg-white p-3 text-sm font-medium">{bankName}</div>
-          {itemsQuery.isLoading ? <div className="text-sm text-slate-600">Loading…</div> : null}
+          <div className="rounded-lg border border-border bg-card p-3 text-sm font-medium">{bankName}</div>
+          {itemsQuery.isLoading ? <div className="text-sm text-mutedForeground">Loading…</div> : null}
           {itemsQuery.error ? <div className="text-sm text-red-600">{String(itemsQuery.error)}</div> : null}
 
-          <div className="rounded-lg border border-slate-200 bg-white p-3">
-            <div className="text-xs font-semibold text-slate-600">Experience</div>
+          <div className="rounded-lg border border-border bg-card p-3">
+            <div className="text-xs font-semibold text-mutedForeground">Experience</div>
             <div className="mt-2 space-y-1">
               {grouped.exp.map((it) => {
                 const key = `${it.type}:${it.id}`;
@@ -112,7 +139,7 @@ export default function BankPreviewPage() {
                 return (
                   <button
                     key={key}
-                    className={`w-full rounded-md px-2 py-1 text-left text-sm hover:bg-slate-50 ${active ? "bg-slate-100 font-medium" : ""}`}
+                    className={`w-full rounded-md px-2 py-1 text-left text-sm hover:bg-accent hover:text-accentForeground ${active ? "bg-accent font-medium text-accentForeground" : ""}`}
                     onClick={() => setSelectedKey(key)}
                   >
                     {it.title}
@@ -120,7 +147,7 @@ export default function BankPreviewPage() {
                 );
               })}
             </div>
-            <div className="mt-4 text-xs font-semibold text-slate-600">Projects</div>
+            <div className="mt-4 text-xs font-semibold text-mutedForeground">Projects</div>
             <div className="mt-2 space-y-1">
               {grouped.proj.map((it) => {
                 const key = `${it.type}:${it.id}`;
@@ -128,7 +155,7 @@ export default function BankPreviewPage() {
                 return (
                   <button
                     key={key}
-                    className={`w-full rounded-md px-2 py-1 text-left text-sm hover:bg-slate-50 ${active ? "bg-slate-100 font-medium" : ""}`}
+                    className={`w-full rounded-md px-2 py-1 text-left text-sm hover:bg-accent hover:text-accentForeground ${active ? "bg-accent font-medium text-accentForeground" : ""}`}
                     onClick={() => setSelectedKey(key)}
                   >
                     {it.title}
@@ -136,7 +163,7 @@ export default function BankPreviewPage() {
                 );
               })}
             </div>
-            <div className="mt-4 text-xs font-semibold text-slate-600">Capabilities</div>
+            <div className="mt-4 text-xs font-semibold text-mutedForeground">Capabilities</div>
             <div className="mt-2 space-y-1">
               {grouped.cap.map((it) => {
                 const key = `${it.type}:${it.id}`;
@@ -144,7 +171,7 @@ export default function BankPreviewPage() {
                 return (
                   <button
                     key={key}
-                    className={`w-full rounded-md px-2 py-1 text-left text-sm hover:bg-slate-50 ${active ? "bg-slate-100 font-medium" : ""}`}
+                    className={`w-full rounded-md px-2 py-1 text-left text-sm hover:bg-accent hover:text-accentForeground ${active ? "bg-accent font-medium text-accentForeground" : ""}`}
                     onClick={() => setSelectedKey(key)}
                   >
                     {it.title}
@@ -172,19 +199,19 @@ export default function BankPreviewPage() {
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {selectedItem.date_range || selectedItem.location ? (
-                    <div className="text-sm text-slate-700">
+                    <div className="text-sm text-mutedForeground">
                       {[selectedItem.date_range, selectedItem.location].filter(Boolean).join(" · ")}
                     </div>
                   ) : null}
                   {selectedItem.domains?.length ? (
                     <div className="space-y-1">
-                      <div className="text-xs font-semibold text-slate-600">Domains</div>
+                      <div className="text-xs font-semibold text-mutedForeground">Domains</div>
                       {chips(selectedItem.domains)}
                     </div>
                   ) : null}
                   {selectedItem.tools?.length ? (
                     <div className="space-y-1">
-                      <div className="text-xs font-semibold text-slate-600">Tools</div>
+                      <div className="text-xs font-semibold text-mutedForeground">Tools</div>
                       {chips(selectedItem.tools)}
                     </div>
                   ) : null}
@@ -193,25 +220,33 @@ export default function BankPreviewPage() {
 
               <div className="flex flex-wrap gap-2">
                 <button
-                  className={`rounded-md border px-3 py-1.5 text-sm ${tab === "overview" ? "bg-slate-100" : "bg-white"}`}
+                  className={`rounded-md border border-border px-3 py-1.5 text-sm ${
+                    tab === "overview" ? "bg-accent text-accentForeground" : "bg-background hover:bg-accent hover:text-accentForeground"
+                  }`}
                   onClick={() => setTab("overview")}
                 >
                   Overview
                 </button>
                 <button
-                  className={`rounded-md border px-3 py-1.5 text-sm ${tab === "evidence" ? "bg-slate-100" : "bg-white"}`}
+                  className={`rounded-md border border-border px-3 py-1.5 text-sm ${
+                    tab === "evidence" ? "bg-accent text-accentForeground" : "bg-background hover:bg-accent hover:text-accentForeground"
+                  }`}
                   onClick={() => setTab("evidence")}
                 >
                   Evidence
                 </button>
                 <button
-                  className={`rounded-md border px-3 py-1.5 text-sm ${tab === "bullets" ? "bg-slate-100" : "bg-white"}`}
+                  className={`rounded-md border border-border px-3 py-1.5 text-sm ${
+                    tab === "bullets" ? "bg-accent text-accentForeground" : "bg-background hover:bg-accent hover:text-accentForeground"
+                  }`}
                   onClick={() => setTab("bullets")}
                 >
                   Resume Bullets
                 </button>
                 <button
-                  className={`rounded-md border px-3 py-1.5 text-sm ${tab === "tech" ? "bg-slate-100" : "bg-white"}`}
+                  className={`rounded-md border border-border px-3 py-1.5 text-sm ${
+                    tab === "tech" ? "bg-accent text-accentForeground" : "bg-background hover:bg-accent hover:text-accentForeground"
+                  }`}
                   onClick={() => setTab("tech")}
                 >
                   Technical Metadata
@@ -219,13 +254,13 @@ export default function BankPreviewPage() {
               </div>
 
               <Card>
-                <CardContent className="prose prose-slate max-w-none p-5">
+                <CardContent className="prose max-w-none p-5 dark:prose-invert">
                   {contentQuery.isLoading ? <div>Loading content…</div> : null}
                   {contentQuery.error ? <div className="text-red-600">{String(contentQuery.error)}</div> : null}
                   {contentQuery.data?.content ? (
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>{contentQuery.data.content}</ReactMarkdown>
                   ) : (
-                    <div className="text-sm text-slate-600">
+                    <div className="text-sm text-mutedForeground">
                       This bank item doesn’t have a readable page yet. (Try regenerating the bank from the master resume.)
                     </div>
                   )}
@@ -238,7 +273,7 @@ export default function BankPreviewPage() {
                     <CardDescription>Shown only for debugging.</CardDescription>
                   </CardHeader>
                   <CardContent className="text-sm">
-                    <pre className="overflow-auto rounded-md bg-slate-50 p-3">{JSON.stringify(selectedItem, null, 2)}</pre>
+                    <pre className="overflow-auto rounded-md bg-muted p-3 text-foreground">{JSON.stringify(selectedItem, null, 2)}</pre>
                   </CardContent>
                 </Card>
               ) : null}
@@ -249,4 +284,3 @@ export default function BankPreviewPage() {
     </div>
   );
 }
-

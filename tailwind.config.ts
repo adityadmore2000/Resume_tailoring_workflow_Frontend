@@ -6,14 +6,26 @@ export default {
   theme: {
     extend: {
       colors: {
-        background: "hsl(0 0% 100%)",
-        foreground: "hsl(222.2 84% 4.9%)",
-        muted: "hsl(210 40% 96.1%)",
-        mutedForeground: "hsl(215.4 16.3% 46.9%)",
-        border: "hsl(214.3 31.8% 91.4%)"
+        background: "hsl(var(--background))",
+        foreground: "hsl(var(--foreground))",
+        card: "hsl(var(--card))",
+        cardForeground: "hsl(var(--card-foreground))",
+        muted: "hsl(var(--muted))",
+        mutedForeground: "hsl(var(--muted-foreground))",
+        border: "hsl(var(--border))",
+        primary: "hsl(var(--primary))",
+        primaryForeground: "hsl(var(--primary-foreground))",
+        secondary: "hsl(var(--secondary))",
+        secondaryForeground: "hsl(var(--secondary-foreground))",
+        accent: "hsl(var(--accent))",
+        accentForeground: "hsl(var(--accent-foreground))",
+        destructive: "hsl(var(--destructive))",
+        success: "hsl(var(--success))",
+        warning: "hsl(var(--warning))",
+        info: "hsl(var(--info))",
+        ring: "hsl(var(--ring))"
       }
     }
   },
   plugins: []
 } satisfies Config;
-

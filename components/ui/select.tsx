@@ -22,12 +22,12 @@ export function Select({
   return (
     <div className={cn(disabled ? "opacity-60" : "")}>
       <select
-        className="h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-slate-400 disabled:cursor-not-allowed"
+        className="h-10 w-full rounded-md border border-border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed"
         value={value ?? ""}
         disabled={disabled}
         onChange={(e) => onChange(e.target.value ? e.target.value : null)}
       >
-        <option value="" disabled>
+        <option value="" disabled hidden>
           {placeholder}
         </option>
         {options.map((o) => (
@@ -39,4 +39,3 @@ export function Select({
     </div>
   );
 }
-

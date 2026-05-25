@@ -47,7 +47,9 @@ export default function ResumePreviewPage() {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold">Resume Workspace</h1>
-          <p className="mt-1 text-sm text-slate-700">Step 4 of 4 — Review & Export. PDF is read-only; LaTeX is editable.</p>
+          <p className="mt-1 text-sm text-mutedForeground">
+            Step 4 of 4 — Review & Export. PDF is read-only; LaTeX is editable.
+          </p>
         </div>
         <div className="flex gap-2">
           <a href={`${API_BASE_URL}/api/resumes/${encodeURIComponent(resumeId)}/export/pdf`} target="_blank" rel="noreferrer">
@@ -61,7 +63,7 @@ export default function ResumePreviewPage() {
           <CardTitle>How this works</CardTitle>
           <CardDescription>Traceability maps generated bullets back to evidence in your Experience Bank.</CardDescription>
         </CardHeader>
-        <CardContent className="text-sm text-slate-700">
+        <CardContent className="text-sm text-mutedForeground">
           Recommended next step: audit traceability, then export your recruiter-ready PDF.
         </CardContent>
       </Card>
@@ -79,7 +81,9 @@ export default function ResumePreviewPage() {
         ).map(([k, label]) => (
           <button
             key={k}
-            className={`rounded-md border px-3 py-1.5 text-sm ${tab === k ? "bg-slate-100" : "bg-white"}`}
+            className={`rounded-md border border-border px-3 py-1.5 text-sm ${
+              tab === k ? "bg-accent text-accentForeground" : "bg-background hover:bg-accent hover:text-accentForeground"
+            }`}
             onClick={() => setTab(k)}
           >
             {label}
@@ -117,7 +121,7 @@ export default function ResumePreviewPage() {
               <Button onClick={() => compileMutation.mutate()} disabled={compileMutation.isPending} variant="secondary">
                 {compileMutation.isPending ? "Compiling…" : "Recompile"}
               </Button>
-              {compiledAt ? <div className="text-xs text-slate-600">Last compile: {compiledAt}</div> : null}
+              {compiledAt ? <div className="text-xs text-mutedForeground">Last compile: {compiledAt}</div> : null}
             </div>
             <div className="h-[820px] overflow-hidden rounded-md border">
               <Editor
@@ -139,7 +143,7 @@ export default function ResumePreviewPage() {
             <CardTitle>Tailored Markdown</CardTitle>
             <CardDescription>Read-only artifact generated from verified evidence.</CardDescription>
           </CardHeader>
-          <CardContent className="prose prose-slate max-w-none">
+          <CardContent className="prose max-w-none dark:prose-invert">
             {mdQuery.data?.markdown ? <ReactMarkdown remarkPlugins={[remarkGfm]}>{mdQuery.data.markdown}</ReactMarkdown> : <div>Loading…</div>}
           </CardContent>
         </Card>
@@ -152,7 +156,9 @@ export default function ResumePreviewPage() {
             <CardDescription>Read-only artifact generated from verified evidence.</CardDescription>
           </CardHeader>
           <CardContent>
-            <pre className="whitespace-pre-wrap rounded-md bg-slate-50 p-3 text-sm">{txtQuery.data?.text ?? "Loading…"}</pre>
+            <pre className="whitespace-pre-wrap rounded-md bg-muted p-3 text-sm text-foreground">
+              {txtQuery.data?.text ?? "Loading…"}
+            </pre>
           </CardContent>
         </Card>
       ) : null}
@@ -164,7 +170,7 @@ export default function ResumePreviewPage() {
             <CardDescription>If it doesn’t map to evidence, treat it as unverified.</CardDescription>
           </CardHeader>
           <CardContent>
-            <pre className="overflow-auto rounded-md bg-slate-50 p-3 text-sm">
+            <pre className="overflow-auto rounded-md bg-muted p-3 text-sm text-foreground">
               {JSON.stringify(traceQuery.data?.traceability ?? null, null, 2)}
             </pre>
           </CardContent>
@@ -178,11 +184,12 @@ export default function ResumePreviewPage() {
             <CardDescription>Shown after you click Recompile.</CardDescription>
           </CardHeader>
           <CardContent>
-            <pre className="whitespace-pre-wrap rounded-md bg-slate-50 p-3 text-sm">{compileLog || "(no compile log yet)"}</pre>
+            <pre className="whitespace-pre-wrap rounded-md bg-muted p-3 text-sm text-foreground">
+              {compileLog || "(no compile log yet)"}
+            </pre>
           </CardContent>
         </Card>
       ) : null}
     </div>
   );
 }
-

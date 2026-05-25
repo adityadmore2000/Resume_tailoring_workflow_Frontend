@@ -175,19 +175,19 @@ export default function BankPreviewPage() {
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {selectedItem.date_range || selectedItem.location ? (
-                    <div className="text-sm text-slate-700">
+                    <div className="text-sm text-mutedForeground">
                       {[selectedItem.date_range, selectedItem.location].filter(Boolean).join(" · ")}
                     </div>
                   ) : null}
                   {selectedItem.domains?.length ? (
                     <div className="space-y-1">
-                      <div className="text-xs font-semibold text-slate-600">Domains</div>
+                      <div className="text-xs font-semibold text-mutedForeground">Domains</div>
                       {chips(selectedItem.domains)}
                     </div>
                   ) : null}
                   {selectedItem.tools?.length ? (
                     <div className="space-y-1">
-                      <div className="text-xs font-semibold text-slate-600">Tools</div>
+                      <div className="text-xs font-semibold text-mutedForeground">Tools</div>
                       {chips(selectedItem.tools)}
                     </div>
                   ) : null}
@@ -196,25 +196,33 @@ export default function BankPreviewPage() {
 
               <div className="flex flex-wrap gap-2">
                 <button
-                  className={`rounded-md border px-3 py-1.5 text-sm ${tab === "overview" ? "bg-slate-100" : "bg-white"}`}
+                  className={`rounded-md border border-border px-3 py-1.5 text-sm ${
+                    tab === "overview" ? "bg-accent text-accentForeground" : "bg-background hover:bg-accent hover:text-accentForeground"
+                  }`}
                   onClick={() => setTab("overview")}
                 >
                   Overview
                 </button>
                 <button
-                  className={`rounded-md border px-3 py-1.5 text-sm ${tab === "evidence" ? "bg-slate-100" : "bg-white"}`}
+                  className={`rounded-md border border-border px-3 py-1.5 text-sm ${
+                    tab === "evidence" ? "bg-accent text-accentForeground" : "bg-background hover:bg-accent hover:text-accentForeground"
+                  }`}
                   onClick={() => setTab("evidence")}
                 >
                   Evidence
                 </button>
                 <button
-                  className={`rounded-md border px-3 py-1.5 text-sm ${tab === "bullets" ? "bg-slate-100" : "bg-white"}`}
+                  className={`rounded-md border border-border px-3 py-1.5 text-sm ${
+                    tab === "bullets" ? "bg-accent text-accentForeground" : "bg-background hover:bg-accent hover:text-accentForeground"
+                  }`}
                   onClick={() => setTab("bullets")}
                 >
                   Resume Bullets
                 </button>
                 <button
-                  className={`rounded-md border px-3 py-1.5 text-sm ${tab === "tech" ? "bg-slate-100" : "bg-white"}`}
+                  className={`rounded-md border border-border px-3 py-1.5 text-sm ${
+                    tab === "tech" ? "bg-accent text-accentForeground" : "bg-background hover:bg-accent hover:text-accentForeground"
+                  }`}
                   onClick={() => setTab("tech")}
                 >
                   Technical Metadata
@@ -222,13 +230,13 @@ export default function BankPreviewPage() {
               </div>
 
               <Card>
-                <CardContent className="prose prose-slate max-w-none p-5">
+                <CardContent className="prose max-w-none p-5 dark:prose-invert">
                   {contentQuery.isLoading ? <div>Loading content…</div> : null}
                   {contentQuery.error ? <div className="text-red-600">{String(contentQuery.error)}</div> : null}
                   {contentQuery.data?.content ? (
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>{contentQuery.data.content}</ReactMarkdown>
                   ) : (
-                    <div className="text-sm text-slate-600">
+                    <div className="text-sm text-mutedForeground">
                       This bank item doesn’t have a readable page yet. (Try regenerating the bank from the master resume.)
                     </div>
                   )}
@@ -241,7 +249,7 @@ export default function BankPreviewPage() {
                     <CardDescription>Shown only for debugging.</CardDescription>
                   </CardHeader>
                   <CardContent className="text-sm">
-                    <pre className="overflow-auto rounded-md bg-slate-50 p-3">{JSON.stringify(selectedItem, null, 2)}</pre>
+                    <pre className="overflow-auto rounded-md bg-muted p-3 text-foreground">{JSON.stringify(selectedItem, null, 2)}</pre>
                   </CardContent>
                 </Card>
               ) : null}

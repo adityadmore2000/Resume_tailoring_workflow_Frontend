@@ -35,67 +35,8 @@ export async function listBankItems(bankName: string): Promise<{ items: any[] }>
   return apiFetch(`/api/banks/${encodeURIComponent(bankName)}/items`);
 }
 
-export async function listBankFiles(bankName: string): Promise<{ files: any[] }> {
-  return apiFetch(`/api/banks/${encodeURIComponent(bankName)}/files`);
-}
-
 export async function getBank(bankName: string): Promise<{ bank: any }> {
   return apiFetch(`/api/banks/${encodeURIComponent(bankName)}`);
-}
-
-export async function deleteBank(bankName: string): Promise<{ bank_name: string; deleted: boolean; deleted_qdrant_points: number | null; deleted_files: boolean }> {
-  return apiFetch(`/api/banks/${encodeURIComponent(bankName)}`, { method: "DELETE" });
-}
-
-export async function readBankFile(bankName: string, path: string): Promise<{ path: string; title: string; content: string }> {
-  const qs = new URLSearchParams({ path });
-  return apiFetch(`/api/banks/${encodeURIComponent(bankName)}/files/content?${qs.toString()}`);
-}
-
-export async function putBankFileContent(bankName: string, body: { path: string; content: string }): Promise<{ ok: boolean; path: string }> {
-  return apiFetch(`/api/banks/${encodeURIComponent(bankName)}/files/content`, {
-    method: "PUT",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify(body)
-  });
-}
-
-export async function updateBankMetadata(
-  bankName: string,
-  body: { display_name?: string | null; notes?: string | null }
-): Promise<{ bank: any }> {
-  return apiFetch(`/api/banks/${encodeURIComponent(bankName)}/metadata`, {
-    method: "PUT",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify(body)
-  });
-}
-
-export async function reingestBank(bankName: string): Promise<{ task_id: string; status: string; bank_folder_name: string }> {
-  return apiFetch(`/api/banks/${encodeURIComponent(bankName)}/reingest`, { method: "POST" });
-}
-
-export async function proposeBankEdit(
-  bankName: string,
-  body: { instruction: string; target_record_id?: string | null; target_evidence_ids?: string[] | null }
-): Promise<any> {
-  return apiFetch(`/api/banks/${encodeURIComponent(bankName)}/edit/propose`, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify(body)
-  });
-}
-
-export async function applyBankEdit(bankName: string, proposalId: string): Promise<any> {
-  return apiFetch(`/api/banks/${encodeURIComponent(bankName)}/edit/${encodeURIComponent(proposalId)}/apply`, { method: "POST" });
-}
-
-export async function rejectBankEdit(bankName: string, proposalId: string): Promise<any> {
-  return apiFetch(`/api/banks/${encodeURIComponent(bankName)}/edit/${encodeURIComponent(proposalId)}/reject`, { method: "POST" });
-}
-
-export async function getBankEditHistory(bankName: string): Promise<any> {
-  return apiFetch(`/api/banks/${encodeURIComponent(bankName)}/edit/history`);
 }
 
 export async function tailorResume(body: { bank_name: string; jd_text: string }): Promise<{ bank_folder_name: string; task_id: string; status: string }> {

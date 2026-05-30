@@ -2,45 +2,32 @@
 
 import Link from "next/link";
 import * as React from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 
-import { deleteBank, listBanks } from "@/lib/api";
+import { listBanks } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyStateAnimation } from "@/components/common/EmptyStateAnimation";
 import { LoadingAnimation } from "@/components/common/LoadingAnimation";
-import { DeleteBankDialog } from "@/components/common/DeleteBankDialog";
 
 export default function BanksPage() {
   const banksQuery = useQuery({ queryKey: ["banks"], queryFn: listBanks });
   const { data, isLoading, error } = banksQuery;
 
-  const [deleteOpen, setDeleteOpen] = React.useState(false);
-  const [bankToDelete, setBankToDelete] = React.useState<string | null>(null);
-
-  const deleteMutation = useMutation({
-    mutationFn: (bankName: string) => deleteBank(bankName),
-    onSuccess: () => {
-      setDeleteOpen(false);
-      setBankToDelete(null);
-      banksQuery.refetch();
-    }
-  });
-
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold">Experience Banks</h1>
-        <p className="mt-1 text-sm text-mutedForeground">Step 1–2 of 4: create and review your reusable knowledge base.</p>
+        <p className="mt-1 text-sm text-mutedForeground">Backed by Postgres `resumes` + `resume_nodes`.</p>
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle>What this page does</CardTitle>
-          <CardDescription>Lists the Experience Banks available for tailoring.</CardDescription>
+          <CardDescription>Lists the banks available for tailoring.</CardDescription>
         </CardHeader>
         <CardContent className="text-sm text-mutedForeground">
-          Recommended next step: create a bank from your master resume, then preview it before tailoring.
+          Create a bank from your master resume, then tailor against a JD.
         </CardContent>
       </Card>
 
@@ -76,40 +63,13 @@ export default function BanksPage() {
               <Link href={`/banks/${encodeURIComponent(b.bank_folder_name)}/preview`}>
                 <Button variant="secondary">Preview</Button>
               </Link>
-              <Link href={`/banks/${encodeURIComponent(b.bank_folder_name)}/edit`}>
-                <Button variant="outline">AI Bank Editor</Button>
-              </Link>
               <Link href={`/tailor?bank=${encodeURIComponent(b.bank_folder_name)}`}>
                 <Button variant="outline">Tailor</Button>
               </Link>
-              <Button
-                variant="destructive"
-                onClick={() => {
-                  setBankToDelete(b.bank_folder_name);
-                  setDeleteOpen(true);
-                }}
-              >
-                Delete
-              </Button>
             </CardContent>
           </Card>
         ))}
       </div>
-
-      <DeleteBankDialog
-        open={deleteOpen}
-        bankName={bankToDelete ?? ""}
-        onCancel={() => {
-          setDeleteOpen(false);
-          setBankToDelete(null);
-        }}
-        onConfirm={() => {
-          if (!bankToDelete) return;
-          deleteMutation.mutate(bankToDelete);
-        }}
-        isDeleting={deleteMutation.isPending}
-        error={deleteMutation.error ? String(deleteMutation.error) : null}
-      />
     </div>
   );
 }

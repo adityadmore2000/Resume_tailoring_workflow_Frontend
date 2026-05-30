@@ -6,7 +6,7 @@ Next.js product UI for Resume Tailor. This frontend contains **no AI/RAG/LLM/Qdr
 1. Install dependencies:
    - `npm install`
 2. Configure environment:
-   - `cp .env.example .env.local`
+   - Set `NEXT_PUBLIC_API_BASE_URL` (via `.env.local` or your shell)
 3. Run:
    - `npm run dev`
 
@@ -24,7 +24,7 @@ NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
 - `/` Landing
 - `/banks` Experience Banks index
 - `/banks/create` Create Experience Bank (upload/paste resume)
-- `/banks/[bankName]/edit` Edit bank files + re-ingest
+- `/banks/[bankName]/preview` Preview bank items (Postgres-backed)
 - `/tailor` Tailor Resume (select bank + paste JD)
 - `/settings` Theme + LLM provider settings (dev/local only for now)
 - `/docs` Docs index

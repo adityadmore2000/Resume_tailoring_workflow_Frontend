@@ -8,7 +8,6 @@ import { useQuery } from "@tanstack/react-query";
 import { listBankItems } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { DeleteBankDialog } from "@/components/common/DeleteBankDialog";
 
 type BankItem = {
   id: string;
@@ -35,7 +34,6 @@ function chips(items: string[]) {
 }
 
 export default function BankPreviewPage() {
-  const router = useRouter();
   const params = useParams<{ bankName: string }>();
   const bankName = decodeURIComponent(params.bankName);
   const [selectedKey, setSelectedKey] = React.useState<string | null>(null);
@@ -71,29 +69,14 @@ export default function BankPreviewPage() {
           <p className="mt-1 text-sm text-mutedForeground">This view is backed by Postgres `resume_nodes` (no file-based bank runtime).</p>
         </div>
         <div className="flex gap-2">
-          <Link href={`/banks/${encodeURIComponent(bankName)}/edit`}>
-            <Button variant="secondary">AI Bank Editor</Button>
-          </Link>
           <Link href={`/tailor?bank=${encodeURIComponent(bankName)}`}>
             <Button>Tailor Resume</Button>
           </Link>
-          <Button variant="destructive" onClick={() => setDeleteOpen(true)}>
-            Delete
-          </Button>
           <Link href="/banks">
             <Button variant="outline">Back to banks</Button>
           </Link>
         </div>
       </div>
-
-      <DeleteBankDialog
-        open={deleteOpen}
-        bankName={bankName}
-        onCancel={() => setDeleteOpen(false)}
-        onConfirm={() => deleteMutation.mutate()}
-        isDeleting={deleteMutation.isPending}
-        error={deleteMutation.error ? String(deleteMutation.error) : null}
-      />
 
       <Card>
         <CardHeader>

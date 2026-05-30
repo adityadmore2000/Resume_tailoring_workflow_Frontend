@@ -4,7 +4,7 @@ import Link from "next/link";
 import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
 
-import { deleteBank, listBanks } from "@/lib/api";
+import { listBanks } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyStateAnimation } from "@/components/common/EmptyStateAnimation";
@@ -63,40 +63,13 @@ export default function BanksPage() {
               <Link href={`/banks/${encodeURIComponent(b.bank_folder_name)}/preview`}>
                 <Button variant="secondary">Preview</Button>
               </Link>
-              <Link href={`/banks/${encodeURIComponent(b.bank_folder_name)}/edit`}>
-                <Button variant="outline">AI Bank Editor</Button>
-              </Link>
               <Link href={`/tailor?bank=${encodeURIComponent(b.bank_folder_name)}`}>
                 <Button variant="outline">Tailor</Button>
               </Link>
-              <Button
-                variant="destructive"
-                onClick={() => {
-                  setBankToDelete(b.bank_folder_name);
-                  setDeleteOpen(true);
-                }}
-              >
-                Delete
-              </Button>
             </CardContent>
           </Card>
         ))}
       </div>
-
-      <DeleteBankDialog
-        open={deleteOpen}
-        bankName={bankToDelete ?? ""}
-        onCancel={() => {
-          setDeleteOpen(false);
-          setBankToDelete(null);
-        }}
-        onConfirm={() => {
-          if (!bankToDelete) return;
-          deleteMutation.mutate(bankToDelete);
-        }}
-        isDeleting={deleteMutation.isPending}
-        error={deleteMutation.error ? String(deleteMutation.error) : null}
-      />
     </div>
   );
 }

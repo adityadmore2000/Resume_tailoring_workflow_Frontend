@@ -3,12 +3,9 @@
 import * as React from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useRouter } from "next/navigation";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+import { useQuery } from "@tanstack/react-query";
 
-import { deleteBank, listBankItems, readBankFile } from "@/lib/api";
+import { listBankItems } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { DeleteBankDialog } from "@/components/common/DeleteBankDialog";
@@ -42,7 +39,6 @@ export default function BankPreviewPage() {
   const params = useParams<{ bankName: string }>();
   const bankName = decodeURIComponent(params.bankName);
   const [selectedKey, setSelectedKey] = React.useState<string | null>(null);
-  const [tab, setTab] = React.useState<"overview" | "evidence" | "bullets" | "tech">("overview");
 
   const itemsQuery = useQuery({
     queryKey: ["bank-items", bankName],
@@ -67,27 +63,12 @@ export default function BankPreviewPage() {
     return items.find((x) => x.type === t && x.id === id) ?? null;
   }, [items, selectedKey]);
 
-  const contentQuery = useQuery({
-    enabled: Boolean(selectedItem?.raw_path),
-    queryKey: ["bank-file", bankName, selectedItem?.raw_path],
-    queryFn: () => readBankFile(bankName, selectedItem!.raw_path)
-  });
-
-  const [deleteOpen, setDeleteOpen] = React.useState(false);
-  const deleteMutation = useMutation({
-    mutationFn: () => deleteBank(bankName),
-    onSuccess: () => {
-      setDeleteOpen(false);
-      router.push("/banks");
-    }
-  });
-
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold">Preview Experience Bank</h1>
-          <p className="mt-1 text-sm text-mutedForeground">Step 2 of 4 — Review extracted content before tailoring.</p>
+          <h1 className="text-2xl font-semibold">Preview Bank</h1>
+          <p className="mt-1 text-sm text-mutedForeground">This view is backed by Postgres `resume_nodes` (no file-based bank runtime).</p>
         </div>
         <div className="flex gap-2">
           <Link href={`/banks/${encodeURIComponent(bankName)}/edit`}>
@@ -116,11 +97,11 @@ export default function BankPreviewPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Why this page exists</CardTitle>
-          <CardDescription>Human-readable review first. Technical metadata stays optional.</CardDescription>
+          <CardTitle>What you’re seeing</CardTitle>
+          <CardDescription>Searchable nodes and extracted metadata from your stored resume tree.</CardDescription>
         </CardHeader>
         <CardContent className="text-sm text-mutedForeground">
-          Recommended next step: confirm the extracted experience looks accurate, then tailor a resume using this bank.
+          Tailoring uses Qdrant resume_nodes retrieval scoped to this resume.
         </CardContent>
       </Card>
 
@@ -198,17 +179,6 @@ export default function BankPreviewPage() {
                   <CardDescription>{selectedItem.type.replaceAll("_", " ")}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  {selectedItem.date_range || selectedItem.location ? (
-                    <div className="text-sm text-mutedForeground">
-                      {[selectedItem.date_range, selectedItem.location].filter(Boolean).join(" · ")}
-                    </div>
-                  ) : null}
-                  {selectedItem.domains?.length ? (
-                    <div className="space-y-1">
-                      <div className="text-xs font-semibold text-mutedForeground">Domains</div>
-                      {chips(selectedItem.domains)}
-                    </div>
-                  ) : null}
                   {selectedItem.tools?.length ? (
                     <div className="space-y-1">
                       <div className="text-xs font-semibold text-mutedForeground">Tools</div>
@@ -217,66 +187,15 @@ export default function BankPreviewPage() {
                   ) : null}
                 </CardContent>
               </Card>
-
-              <div className="flex flex-wrap gap-2">
-                <button
-                  className={`rounded-md border border-border px-3 py-1.5 text-sm ${
-                    tab === "overview" ? "bg-accent text-accentForeground" : "bg-background hover:bg-accent hover:text-accentForeground"
-                  }`}
-                  onClick={() => setTab("overview")}
-                >
-                  Overview
-                </button>
-                <button
-                  className={`rounded-md border border-border px-3 py-1.5 text-sm ${
-                    tab === "evidence" ? "bg-accent text-accentForeground" : "bg-background hover:bg-accent hover:text-accentForeground"
-                  }`}
-                  onClick={() => setTab("evidence")}
-                >
-                  Evidence
-                </button>
-                <button
-                  className={`rounded-md border border-border px-3 py-1.5 text-sm ${
-                    tab === "bullets" ? "bg-accent text-accentForeground" : "bg-background hover:bg-accent hover:text-accentForeground"
-                  }`}
-                  onClick={() => setTab("bullets")}
-                >
-                  Resume Bullets
-                </button>
-                <button
-                  className={`rounded-md border border-border px-3 py-1.5 text-sm ${
-                    tab === "tech" ? "bg-accent text-accentForeground" : "bg-background hover:bg-accent hover:text-accentForeground"
-                  }`}
-                  onClick={() => setTab("tech")}
-                >
-                  Technical Metadata
-                </button>
-              </div>
-
               <Card>
-                <CardContent className="prose max-w-none p-5 dark:prose-invert">
-                  {contentQuery.isLoading ? <div>Loading content…</div> : null}
-                  {contentQuery.error ? <div className="text-red-600">{String(contentQuery.error)}</div> : null}
-                  {contentQuery.data?.content ? (
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{contentQuery.data.content}</ReactMarkdown>
-                  ) : (
-                    <div className="text-sm text-mutedForeground">
-                      This bank item doesn’t have a readable page yet. (Try regenerating the bank from the master resume.)
-                    </div>
-                  )}
+                <CardHeader>
+                  <CardTitle>Debug</CardTitle>
+                  <CardDescription>Raw item payload.</CardDescription>
+                </CardHeader>
+                <CardContent className="text-sm">
+                  <pre className="overflow-auto rounded-md bg-muted p-3 text-foreground">{JSON.stringify(selectedItem, null, 2)}</pre>
                 </CardContent>
               </Card>
-              {tab === "tech" && selectedItem ? (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Technical metadata</CardTitle>
-                    <CardDescription>Shown only for debugging.</CardDescription>
-                  </CardHeader>
-                  <CardContent className="text-sm">
-                    <pre className="overflow-auto rounded-md bg-muted p-3 text-foreground">{JSON.stringify(selectedItem, null, 2)}</pre>
-                  </CardContent>
-                </Card>
-              ) : null}
             </>
           )}
         </div>
